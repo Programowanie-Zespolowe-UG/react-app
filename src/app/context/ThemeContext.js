@@ -15,21 +15,34 @@ const ColorModeContext = createContext({ toggleColorMode: () => {} });
 export const useColorMode = () => useContext(ColorModeContext);
 
 export default function ThemeContextProvider({ children }) {
+  // Always start with 'light' to ensure SSR/CSR match, then update after hydration
   const [mode, setMode] = useState('light');
+  const [mounted, setMounted] = useState(false);
 
-  // Load saved preference
+  // Load saved preference after component mounts (client-side only)
   useEffect(() => {
-    const savedMode = localStorage.getItem('themeMode');
-    if (savedMode) {
-      setMode(savedMode);
-      document.documentElement.setAttribute('data-theme', savedMode);
-    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-       setMode('dark');
-       document.documentElement.setAttribute('data-theme', 'dark');
-    } else {
-       document.documentElement.setAttribute('data-theme', 'light');
-    }
+    // Schedule state updates asynchronously to avoid cascading renders
+    queueMicrotask(() => {
+      setMounted(true);
+      const savedMode = localStorage.getItem('themeMode');
+      if (savedMode && (savedMode === 'light' || savedMode === 'dark')) {
+        setMode(savedMode);
+        document.documentElement.setAttribute('data-theme', savedMode);
+      } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        setMode('dark');
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    });
   }, []);
+
+  // Update DOM attribute when mode changes
+  useEffect(() => {
+    if (mounted) {
+      document.documentElement.setAttribute('data-theme', mode);
+    }
+  }, [mode, mounted]);
 
   const colorMode = useMemo(
     () => ({
@@ -140,6 +153,7 @@ export default function ThemeContextProvider({ children }) {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <Box
+          suppressHydrationWarning
           sx={{
             flex: 1,
             minHeight: '100vh',

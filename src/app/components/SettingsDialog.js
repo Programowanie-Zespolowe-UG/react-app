@@ -10,7 +10,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 });
 
 export default function SettingsDialog({ open, onClose, user, onUpdateUser, onPasswordChange }) {
-  const [name, setName] = useState('');
+  const [name, setName] = useState(() => user?.name || '');
   const [passwordData, setPasswordData] = useState({
     oldPassword: '',
     newPassword: '',
@@ -19,14 +19,16 @@ export default function SettingsDialog({ open, onClose, user, onUpdateUser, onPa
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (user) {
-      setName(user.name || '');
-    }
-    // Reset password fields and error on open
-    if (open) {
-        setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
-        setError('');
-    }
+    if (!open) return;
+
+    // Schedule state updates asynchronously to avoid cascading renders
+    queueMicrotask(() => {
+      if (user?.name !== undefined) {
+        setName(user.name || '');
+      }
+      setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
+      setError('');
+    });
   }, [user, open]);
 
   const handleNameSave = () => {
