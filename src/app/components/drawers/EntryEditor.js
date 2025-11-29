@@ -1,42 +1,46 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { 
-  Drawer, Box, Typography, TextField, Button, Stack, ToggleButton, ToggleButtonGroup, IconButton, Divider
+  Drawer, Box, Typography, TextField, Button, Stack, ToggleButton, ToggleButtonGroup, IconButton, Divider,
+  Select, MenuItem, FormControl, InputLabel
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/CloseRounded';
 import DeleteIcon from '@mui/icons-material/DeleteRounded';
-import { useTheme } from '@mui/material/styles';
 
-export default function EntryEditor({ open, onClose, entry, onSave, onDelete, categories }) {
-  const theme = useTheme();
+export default function EntryEditor({ open, onClose, entry, onSave, onDelete, categories = [] }) {
   
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState(() => ({
     amount: '',
     type: 'expense',
     date: new Date().toISOString().split('T')[0],
     category_id: '',
     description: ''
-  });
+  }));
 
   useEffect(() => {
-    if (entry) {
-      setFormData({
-        amount: entry.amount,
-        type: entry.type,
-        date: entry.date ? entry.date.split('T')[0] : new Date().toISOString().split('T')[0],
-        category_id: entry.category_id,
-        description: entry.description || ''
-      });
-    } else {
-       // Reset for add mode
-       setFormData({
-        amount: '',
-        type: 'expense',
-        date: new Date().toISOString().split('T')[0],
-        category_id: '',
-        description: ''
-      });
-    }
+    if (!open) return;
+
+    // Schedule state updates asynchronously to avoid cascading renders
+    queueMicrotask(() => {
+      if (entry) {
+        setFormData({
+          amount: entry.amount,
+          type: entry.type,
+          date: entry.date ? entry.date.split('T')[0] : new Date().toISOString().split('T')[0],
+          category_id: entry.category_id,
+          description: entry.description || ''
+        });
+      } else {
+        // Reset for add mode
+        setFormData({
+          amount: '',
+          type: 'expense',
+          date: new Date().toISOString().split('T')[0],
+          category_id: '',
+          description: ''
+        });
+      }
+    });
   }, [entry, open]);
 
   const handleChange = (e) => {
@@ -59,7 +63,8 @@ export default function EntryEditor({ open, onClose, entry, onSave, onDelete, ca
     onClose();
   };
 
-  const filteredCategories = categories.filter(c => c.type === formData.type);
+  const uniqueCategoriesArray = Array.from(new Set(categories));
+  const filteredCategories = uniqueCategoriesArray.filter(c => c.type === formData.type);
 
   return (
     <Drawer
@@ -127,24 +132,75 @@ export default function EntryEditor({ open, onClose, entry, onSave, onDelete, ca
                 />
             </Stack>
 
-            <TextField
-                select
-                label="Category"
+            <FormControl fullWidth required>
+              <InputLabel 
+                id="category-select-label" 
+                shrink
+                sx={{
+                  '&.MuiInputLabel-shrink': {
+                    transform: 'translate(14px, -9px) scale(0.75)',
+                    backgroundColor: 'background.paper',
+                    padding: '0 4px',
+                  },
+                }}
+              >
+                Category
+              </InputLabel>
+              <Select
+                labelId="category-select-label"
                 name="category_id"
-                value={formData.category_id}
+                value={formData.category_id || ''}
                 onChange={handleChange}
-                fullWidth
-                required
-                SelectProps={{ native: true }}
-                InputLabelProps={{ shrink: true }}
-            >
-                <option value="" disabled>Select Category</option>
+                label="Category"
+                displayEmpty
+                renderValue={(selected) => {
+                  if (!selected) {
+                    return <em style={{ disabled: true, color: '#b3b3b3' }}>Select Category</em>;
+                  }
+                  const category = filteredCategories.find(c => c.id === parseInt(selected));
+                  return category ? category.name : '';
+                }}
+                sx={{
+                  borderRadius: '12px',
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderRadius: '12px',
+                  },
+                  '& .MuiInputLabel-root': {
+                    zIndex: 1,
+                  },
+                }}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      borderRadius: '12px',
+                      mt: 1,
+                      maxHeight: 300,
+                      '& .MuiMenuItem-root': {
+                        borderRadius: '8px',
+                        mx: 1,
+                        my: 0.5,
+                        '&:hover': {
+                          backgroundColor: 'action.hover',
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: 'primary.main',
+                          color: 'primary.contrastText',
+                          '&:hover': {
+                            backgroundColor: 'primary.dark',
+                          },
+                        },
+                      },
+                    },
+                  },
+                }}
+              >
                 {filteredCategories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
+                  <MenuItem key={cat.id} value={cat.id}>
                     {cat.name}
-                  </option>
+                  </MenuItem>
                 ))}
-            </TextField>
+              </Select>
+            </FormControl>
 
             <TextField
                 label="Description"

@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
 import { Box, Stack, Typography, Fab, CircularProgress, Container, Button, IconButton } from '@mui/material';
@@ -43,7 +43,7 @@ export default function Home() {
 
   const currentYear = new Date().getFullYear();
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [resEntries, resCats, resStats] = await Promise.all([
         fetch('/api/entries'),
@@ -64,17 +64,21 @@ export default function Home() {
     } catch (error) {
       console.error('Failed to fetch data', error);
     }
-  };
+
+  }, [currentYear, logout]);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       router.push('/login');
     } else if (isAuthenticated) {
-      fetchData();
+      // Schedule fetchData asynchronously to avoid synchronous setState in effect
+      queueMicrotask(() => {
+        fetchData();
+      });
     }
-  }, [isAuthenticated, authLoading]);
+  }, [isAuthenticated, authLoading, fetchData, router]);
 
-  // --- Actions ---
+
 
   const handleUpdateUser = async (newUserData) => {
     try {
@@ -162,10 +166,10 @@ export default function Home() {
 
   // --- Render Screens ---
 
-  if (authLoading) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}><CircularProgress /></Box>;
+  if (authLoading) return <Box suppressHydrationWarning sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}><CircularProgress /></Box>;
 
   const renderDashboard = () => {
-      if (!stats) return <CircularProgress />;
+      if (!stats) return <Box suppressHydrationWarning><CircularProgress /></Box>;
       
       const { totalIncome, totalExpense, balance, yearlyTrends } = stats;
 
@@ -254,7 +258,7 @@ export default function Home() {
   };
 
   const renderReports = () => {
-    if (!stats) return <CircularProgress />;
+    if (!stats) return <Box suppressHydrationWarning><CircularProgress /></Box>;
     
     const { totalIncome, totalExpense, categoryStats } = stats;
     const savingsRate = totalIncome > 0 ? (totalIncome - totalExpense) / totalIncome : 0;
