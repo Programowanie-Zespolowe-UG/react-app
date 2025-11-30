@@ -7,7 +7,14 @@ import { serialize } from 'cookie';
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'; // It's better to have this in .env
 
 export async function POST(request) {
-  const { email, password } = await request.json();
+  let email, password;
+  try {
+    const body = await request.json();
+    email = body.email;
+    password = body.password;
+  } catch (error) {
+    return NextResponse.json({ error: 'Invalid JSON input' }, { status: 400 });
+  }
 
   if (!email || !password) {
     return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });

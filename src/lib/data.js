@@ -29,7 +29,7 @@ export const db = {
         });
     },
     update: (id, data, userId) => {
-        const { category_id, ...rest } = data;
+        const { category_id, type, id: _, ...rest } = data;
         const updateData = { ...rest };
         if (category_id) {
             updateData.categoryId = Number(category_id);

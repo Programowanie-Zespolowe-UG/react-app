@@ -25,9 +25,9 @@ export default function EntryEditor({ open, onClose, entry, onSave, onDelete, ca
       if (entry) {
         setFormData({
           amount: entry.amount,
-          type: entry.type,
+          type: entry.category?.type || entry.type || 'expense',
           date: entry.date ? entry.date.split('T')[0] : new Date().toISOString().split('T')[0],
-          category_id: entry.category_id,
+          category_id: entry.categoryId || entry.category_id,
           description: entry.description || ''
         });
       } else {

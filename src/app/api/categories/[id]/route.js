@@ -7,7 +7,7 @@ export async function PUT(request, { params }) {
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  const { id } = params;
+  const { id } = await params;
   const body = await request.json();
   
   try {
@@ -23,7 +23,7 @@ export async function DELETE(request, { params }) {
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  const { id } = params;
+  const { id } = await params;
 
   try {
     await db.categories.delete(Number(id), userId);

@@ -7,13 +7,19 @@ export async function PUT(request, { params }) {
     if (!userId) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
+    
+    // Ensure date is a Date object if present
+    if (body.date) {
+        body.date = new Date(body.date);
+    }
   
     try {
         const updated = await db.entries.update(Number(id), body, userId);
         return NextResponse.json(updated);
     } catch (error) {
+        console.error('Error updating entry:', error);
         return NextResponse.json({ error: 'Entry not found or not editable' }, { status: 404 });
     }
 }
@@ -23,7 +29,7 @@ export async function DELETE(request, { params }) {
     if (!userId) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const { id } = params;
+    const { id } = await params;
 
     try {
         await db.entries.delete(Number(id), userId);
