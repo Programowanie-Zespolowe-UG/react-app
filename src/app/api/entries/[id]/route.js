@@ -16,7 +16,7 @@ export async function PUT(request, { params }) {
     }
   
     try {
-        const updated = await db.entries.update(Number(id), body, userId);
+        const updated = await db.entries.update(id, body, userId);
         return NextResponse.json(updated);
     } catch (error) {
         console.error('Error updating entry:', error);
@@ -32,7 +32,7 @@ export async function DELETE(request, { params }) {
     const { id } = await params;
 
     try {
-        await db.entries.delete(Number(id), userId);
+        await db.entries.delete(id, userId);
         return NextResponse.json({ success: true });
     } catch (error) {
         return NextResponse.json({ error: 'Entry not found or cannot be deleted' }, { status: 400 });

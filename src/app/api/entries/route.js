@@ -26,7 +26,7 @@ export async function POST(request) {
   const newEntry = await db.entries.create({
     amount: parseFloat(amount),
     date: new Date(date),
-    category_id: parseInt(category_id),
+    category_id: category_id,
     description
   }, userId);
 

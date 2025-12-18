@@ -57,7 +57,7 @@ export default function EntryEditor({ open, onClose, entry, onSave, onDelete, ca
     onSave({
         ...formData,
         amount: parseFloat(formData.amount),
-        category_id: parseInt(formData.category_id),
+        category_id: formData.category_id,
         id: entry ? entry.id : undefined 
     });
     onClose();
@@ -157,7 +157,7 @@ export default function EntryEditor({ open, onClose, entry, onSave, onDelete, ca
                   if (!selected) {
                     return <em style={{ disabled: true, color: '#b3b3b3' }}>Select Category</em>;
                   }
-                  const category = filteredCategories.find(c => c.id === parseInt(selected));
+                  const category = filteredCategories.find(c => c.id === selected);
                   return category ? category.name : '';
                 }}
                 sx={{

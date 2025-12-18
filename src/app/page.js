@@ -46,9 +46,9 @@ export default function Home() {
   const fetchData = useCallback(async () => {
     try {
       const [resEntries, resCats, resStats] = await Promise.all([
-        fetch('/api/entries'),
-        fetch('/api/categories'),
-        fetch(`/api/stats?year=${currentYear}`)
+        fetch('/api/entries', { cache: 'no-store' }),
+        fetch('/api/categories', { cache: 'no-store' }),
+        fetch(`/api/stats?year=${currentYear}`, { cache: 'no-store' })
       ]);
 
       if (resEntries.status === 401 || resCats.status === 401 || resStats.status === 401) {

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { Box, TextField, Button, Typography, Container } from '@mui/material';
+import { Box, TextField, Button, Typography, Container, Link } from '@mui/material';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -86,6 +86,11 @@ export default function LoginPage() {
           >
             Sign In
           </Button>
+          <Box sx={{ textAlign: 'center' }}>
+            <Link href="/register" variant="body2" sx={{ cursor: 'pointer', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>
+              {"Don't have an account? Sign Up"}
+            </Link>
+          </Box>
         </Box>
       </Box>
     </Container>
