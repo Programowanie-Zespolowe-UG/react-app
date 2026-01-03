@@ -341,7 +341,7 @@ export default function Home() {
             </Stack>
 
             <Box sx={{ minHeight: 350, bgcolor: 'background.paper', borderRadius: '16px', p: 3 }}>
-                <Stack direction="row" alignItems="center" spacing={1} gutterBottom>
+                <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
                     <Typography variant="subtitle1" fontWeight="bold" color="text.primary">Savings Rate</Typography>
                     <MuiTooltip title="Percentage of income saved after expenses (Income - Expenses) / Income" arrow>
                         <InfoOutlinedIcon fontSize="small" color="action" sx={{ cursor: 'help' }} />
