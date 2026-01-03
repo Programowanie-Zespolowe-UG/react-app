@@ -83,7 +83,7 @@ export default function CategoryEditor({ open, onClose, category, onSave }) {
               val && setFormData({ ...formData, type: val })
             }
             fullWidth
-            disabled={!!category} // Disable type change for existing categories to avoid confusion
+            disabled={!!category}
           >
             <ToggleButton value="expense" color="error">
               Expense

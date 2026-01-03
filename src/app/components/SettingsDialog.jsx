@@ -21,7 +21,7 @@ export default function SettingsDialog({ open, onClose, user, onUpdateUser, onPa
   useEffect(() => {
     if (!open) return;
 
-    // Schedule state updates asynchronously to avoid cascading renders
+
     queueMicrotask(() => {
       if (user?.name !== undefined) {
         setName(user.name || '');

@@ -13,7 +13,7 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
   }
 
-  // Validate Captcha
+
   const cookieHeader = request.headers.get('cookie');
   const cookies = cookieHeader ? parse(cookieHeader) : {};
   const captchaHash = cookies.captcha;

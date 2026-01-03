@@ -20,7 +20,7 @@ export default function EntryEditor({ open, onClose, entry, onSave, onDelete, ca
   useEffect(() => {
     if (!open) return;
 
-    // Schedule state updates asynchronously to avoid cascading renders
+
     queueMicrotask(() => {
       if (entry) {
         setFormData({
@@ -31,7 +31,7 @@ export default function EntryEditor({ open, onClose, entry, onSave, onDelete, ca
           description: entry.description || ''
         });
       } else {
-        // Reset for add mode
+
         setFormData({
           amount: '',
           type: 'expense',
@@ -104,7 +104,7 @@ export default function EntryEditor({ open, onClose, entry, onSave, onDelete, ca
                 value={formData.amount}
                 onChange={(e) => {
                     const val = e.target.value;
-                    // Allow positive numbers with up to 2 decimal places
+
                     if (val === '' || /^\d+(\.\d{0,2})?$/.test(val)) {
                         setFormData({ ...formData, amount: val });
                     }

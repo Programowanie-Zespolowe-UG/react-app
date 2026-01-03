@@ -2,12 +2,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
-import { Box, Stack, Typography, Fab, CircularProgress, Container, Button, IconButton } from '@mui/material';
+import { Box, Stack, Typography, Fab, CircularProgress, Container, Button, IconButton, Select, MenuItem, FormControl, InputLabel, Tooltip as MuiTooltip } from '@mui/material';
 import AddIcon from '@mui/icons-material/AddRounded';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 import BottomNav from './components/BottomNav';
 import StatsCard from './components/StatsCard';
@@ -18,7 +19,20 @@ import SettingsDialog from './components/SettingsDialog';
 import EntryEditor from './components/drawers/EntryEditor';
 import CategoryEditor from './components/drawers/CategoryEditor';
 
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, RadialBarChart, RadialBar, Legend } from 'recharts';
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend, 
+  ResponsiveContainer, 
+  PieChart, 
+  Pie, 
+  Cell,
+  Label
+} from 'recharts';
 import { useColorMode } from './context/ThemeContext';
 import { useTheme } from '@mui/material/styles';
 
@@ -29,54 +43,81 @@ export default function Home() {
   const { toggleColorMode, mode } = useColorMode();
   const theme = useTheme();
   
-  // Data State
+
   const [entries, setEntries] = useState([]);
   const [categories, setCategories] = useState([]);
   const [stats, setStats] = useState(null);
   
-  // Drawer State
+
   const [entryEditorOpen, setEntryEditorOpen] = useState(false);
   const [categoryEditorOpen, setCategoryEditorOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState(null);
   const [editingCategory, setEditingCategory] = useState(null);
 
-  const currentYear = new Date().getFullYear();
+
+  const [reportRange, setReportRange] = useState('last12m'); // 'last12m', 'last6m', 'last3m', 'last1m', '2025', etc.
+  
+
+  const [dashboardStats, setDashboardStats] = useState(null);
+  const [reportStats, setReportStats] = useState(null);
+
+  const fetchDashboardData = useCallback(async () => {
+      try {
+        const res = await fetch(`/api/stats?range=last12m`, { cache: 'no-store' });
+        if (res.ok) setDashboardStats(await res.json());
+      } catch (e) { console.error(e); }
+  }, []);
+
+  const fetchReportData = useCallback(async () => {
+    try {
+        let url = `/api/stats?range=${reportRange}`;
+        // specific year logic
+        if (!isNaN(reportRange)) {
+            url = `/api/stats?year=${reportRange}`;
+        }
+        
+        const res = await fetch(url, { cache: 'no-store' });
+        if (res.ok) setReportStats(await res.json());
+    } catch(e) { console.error(e); }
+  }, [reportRange]);
 
   const fetchData = useCallback(async () => {
     try {
-      const [resEntries, resCats, resStats] = await Promise.all([
+      const [resEntries, resCats] = await Promise.all([
         fetch('/api/entries', { cache: 'no-store' }),
         fetch('/api/categories', { cache: 'no-store' }),
-        fetch(`/api/stats?year=${currentYear}`, { cache: 'no-store' })
       ]);
 
-      if (resEntries.status === 401 || resCats.status === 401 || resStats.status === 401) {
+      if (resEntries.status === 401 || resCats.status === 401) {
         logout();
         return;
       }
 
-      if (resEntries.ok && resCats.ok && resStats.ok) {
+      if (resEntries.ok && resCats.ok) {
         setEntries(await resEntries.json());
         setCategories(await resCats.json());
-        setStats(await resStats.json());
       }
+      
+
+      fetchDashboardData();
+      fetchReportData();
+
     } catch (error) {
       console.error('Failed to fetch data', error);
     }
+  }, [logout, fetchDashboardData, fetchReportData]);
 
-  }, [currentYear, logout]);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       router.push('/login');
     } else if (isAuthenticated) {
-      // Schedule fetchData asynchronously to avoid synchronous setState in effect
-      queueMicrotask(() => {
-        fetchData();
-      });
+       queueMicrotask(() => {
+         fetchData();
+       });
     }
-  }, [isAuthenticated, authLoading, fetchData, router]);
+  }, [isAuthenticated, authLoading, fetchData, router, reportRange]);
 
 
 
@@ -164,16 +205,14 @@ export default function Home() {
       setCategoryEditorOpen(true);
   };
 
-  // --- Render Screens ---
+
 
   if (authLoading) return <Box suppressHydrationWarning sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}><CircularProgress /></Box>;
 
   const renderDashboard = () => {
-      if (!stats) return <Box suppressHydrationWarning><CircularProgress /></Box>;
+      if (!dashboardStats) return <Box suppressHydrationWarning><CircularProgress /></Box>;
       
-      const { totalIncome, totalExpense, balance, yearlyTrends } = stats;
-
-      // Use real yearlyTrends from API, or fallback to empty array
+      const { totalIncome, totalExpense, balance, yearlyTrends } = dashboardStats;
       const trendData = yearlyTrends || [];
 
       return (
@@ -184,10 +223,11 @@ export default function Home() {
                         Hello, {user?.name || user?.email || 'User'}! 👋
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                        Here is your financial overview
+                        Last 12 Months Overview
                     </Typography>
                   </Box>
                   <Stack direction="row" spacing={1}>
+
                       <IconButton onClick={() => setSettingsOpen(true)} color="inherit">
                          <SettingsIcon />
                       </IconButton>
@@ -223,10 +263,10 @@ export default function Home() {
                 color={mode === 'dark' ? (balance >= 0 ? '#69f0ae' : '#ff5252') : (balance >= 0 ? '#2e7d32' : '#c62828')}
               />
 
-              {/* Monthly Trends Chart */}
+
               <Box sx={{ height: 300, bgcolor: 'background.paper', borderRadius: '16px', p: 3, display: 'flex', flexDirection: 'column' }}>
-                  <Typography variant="subtitle1" fontWeight="bold" gutterBottom color="text.primary">Monthly Trends</Typography>
-                  <Box sx={{ flexGrow: 1, width: '100%', minHeight: 0 }}>
+                  <Typography variant="subtitle1" fontWeight="bold" gutterBottom color="text.primary">Trends (Last 12 Months)</Typography>
+                  <Box sx={{ flexGrow: 1, width: '100%', minHeight: 0, '& *:focus': { outline: 'none !important' } }}>
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={trendData}>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme.palette.divider} />
@@ -234,7 +274,7 @@ export default function Home() {
                                 dataKey="name"
                                 axisLine={false}
                                 tickLine={false}
-                                tick={{ fill: theme.palette.text.secondary }}
+                                tick={{ fill: theme.palette.text.secondary, fontSize: 12 }}
                             />
                             <Tooltip
                                 cursor={{fill: 'transparent'}}
@@ -246,6 +286,7 @@ export default function Home() {
                                     boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
                                 }}
                                 itemStyle={{ color: theme.palette.text.primary }}
+                                formatter={(value) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(value)}
                             />
                             <Bar dataKey="income" fill={theme.palette.primary.main} radius={[4, 4, 0, 0]} activeBar={false} />
                             <Bar dataKey="expense" fill={theme.palette.secondary.main} radius={[4, 4, 0, 0]} activeBar={false} />
@@ -258,54 +299,117 @@ export default function Home() {
   };
 
   const renderReports = () => {
-    if (!stats) return <Box suppressHydrationWarning><CircularProgress /></Box>;
+    if (!reportStats) return <Box suppressHydrationWarning><CircularProgress /></Box>;
     
-    const { totalIncome, totalExpense, categoryStats } = stats;
+    const { totalIncome, totalExpense, categoryStats } = reportStats;
     const savingsRate = totalIncome > 0 ? (totalIncome - totalExpense) / totalIncome : 0;
-    const savingsData = [{ name: 'Savings', value: savingsRate * 100 }];
+    const savingsValue = Math.round(savingsRate * 100);
+    // Create data for gauge: [Savings, Remaining]
+    const savingsData = [
+        { name: 'Savings', value: savingsValue },
+        { name: 'Remaining', value: 100 - savingsValue }
+    ];
     const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+
+    const currentYear = new Date().getFullYear();
+    const years = Array.from({length: 4}, (_, i) => (currentYear - i).toString()); // [2026, 2025, 2024, 2023]
+    const ranges = [
+        { label: '1M', value: 'last1m' },
+        { label: '3M', value: 'last3m' },
+        { label: '6M', value: 'last6m' },
+        { label: '1Y', value: 'last12m' },
+    ];
 
     return (
         <Stack spacing={3}>
-            <Typography variant="h5" fontWeight="bold" color="text.primary">Reports</Typography>
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+                <Typography variant="h5" fontWeight="bold" color="text.primary">Reports</Typography>
+                
+
+                <FormControl size="small" sx={{ minWidth: 120 }}>
+                    <Select
+                        value={reportRange}
+                        onChange={(e) => setReportRange(e.target.value)}
+                        variant="outlined"
+                        sx={{ borderRadius: 3, '.MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.divider } }}
+                    >
+                        {ranges.map(r => <MenuItem key={r.value} value={r.value}>{r.label}</MenuItem>)}
+                        <MenuItem disabled>Years</MenuItem>
+                        {years.map(y => <MenuItem key={y} value={y}>{y}</MenuItem>)}
+                    </Select>
+                </FormControl>
+            </Stack>
 
             <Box sx={{ minHeight: 350, bgcolor: 'background.paper', borderRadius: '16px', p: 3 }}>
-                <Typography variant="subtitle1" fontWeight="bold" gutterBottom color="text.primary">Savings Rate</Typography>
-                 <Box sx={{ width: '100%', height: 250, mt: 2 }}>
+                <Stack direction="row" alignItems="center" spacing={1} gutterBottom>
+                    <Typography variant="subtitle1" fontWeight="bold" color="text.primary">Savings Rate</Typography>
+                    <MuiTooltip title="Percentage of income saved after expenses (Income - Expenses) / Income" arrow>
+                        <InfoOutlinedIcon fontSize="small" color="action" sx={{ cursor: 'help' }} />
+                    </MuiTooltip>
+                </Stack>
+                 <Box sx={{ width: '100%', height: 250, mt: 2, '& *:focus': { outline: 'none !important' } }}>
                    <ResponsiveContainer width="100%" height="100%">
-                      <RadialBarChart 
-                          innerRadius="90%" 
-                          outerRadius="70%" 
-                          data={savingsData} 
-                          startAngle={180} 
-                          endAngle={-180}
-                      >
-                          <RadialBar
-                              minAngle={15}
-                              label={{ position: 'insideStart', fill: theme.palette.text.primary }}
-                              background
-                              clockWise
-                              dataKey='value'
-                              cornerRadius={50}
-                              fill={theme.palette.primary.main}
+                      <PieChart>
+                          <Pie
+                              data={savingsData}
+                              cx="50%"
+                              cy="70%"
+                              innerRadius={80}
+                              outerRadius={110}
+                              startAngle={180}
+                              endAngle={0}
+                              dataKey="value"
+                              stroke="none"
+                              paddingAngle={0}
+                          >
+                              <Cell fill={theme.palette.primary.main} />
+                              <Cell fill={theme.palette.mode === 'dark' ? '#333' : '#e0e0e0'} />
+                              <Label 
+                                value={`${savingsValue}%`} 
+                                position="center" 
+                                dy={-5}
+                                style={{ 
+                                    fontSize: '32px', 
+                                    fontWeight: 'bold', 
+                                    fill: theme.palette.text.primary,
+                                }} 
+                              />
+                          </Pie>
+                          <Tooltip 
+                              formatter={(val, name) => [ `${val}%`, name ]}
+                              contentStyle={{
+                                  backgroundColor: theme.palette.background.paper,
+                                  color: theme.palette.text.primary,
+                                  borderRadius: 12,
+                                  border: `1px solid ${theme.palette.divider}`,
+                                  boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+                              }}
+                              itemStyle={{ color: theme.palette.text.primary }}
                           />
-                          <Legend iconSize={10} width={120} height={140} layout='vertical' verticalAlign='middle' align="right" />
-                          <Tooltip />
-                      </RadialBarChart>
+                          <Legend 
+                            verticalAlign="bottom" 
+                            align="center"
+                            payload={[
+                                { value: 'Savings', type: 'square', id: 'ID01', color: theme.palette.primary.main },
+                                { value: 'Remaining', type: 'square', id: 'ID02', color: theme.palette.text.secondary }
+                            ]}
+                            formatter={(value) => <span style={{ color: theme.palette.text.primary }}>{value}</span>}
+                          />
+                      </PieChart>
                    </ResponsiveContainer>
                  </Box>
             </Box>
 
             <Box sx={{ minHeight: 350, bgcolor: 'background.paper', borderRadius: '16px', p: 3 }}>
                 <Typography variant="subtitle1" fontWeight="bold" gutterBottom color="text.primary">Expenses Breakdown</Typography>
-                 <Box sx={{ width: '100%', height: 250, mt: 2 }}>
+                 <Box sx={{ width: '100%', height: 250, mt: 2, '& *:focus': { outline: 'none !important' } }}>
                    <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie
                           data={categoryStats.filter(c => c.type === 'expense')}
                           innerRadius={60}
-                          outerRadius={80}
-                          paddingAngle={5}
+                          outerRadius={90}
+                          paddingAngle={3}
                           dataKey="value"
                           stroke="none"
                         >
@@ -314,6 +418,7 @@ export default function Home() {
                           ))}
                         </Pie>
                         <Tooltip
+                          formatter={(value) => new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(value)}
                           contentStyle={{
                               backgroundColor: theme.palette.background.paper,
                               color: theme.palette.text.primary,
@@ -326,9 +431,9 @@ export default function Home() {
                       </PieChart>
                    </ResponsiveContainer>
                  </Box>
-                {/* Simple Legend */}
+
                 <Stack direction="row" flexWrap="wrap" gap={1} justifyContent="center" mt={2}>
-                    {categoryStats.filter(c => c.type === 'expense').slice(0, 5).map((c, i) => (
+                    {categoryStats.filter(c => c.type === 'expense').map((c, i) => (
                         <Box key={c.name} sx={{ display: 'flex', alignItems: 'center', fontSize: 12, color: 'text.secondary' }}>
                             <Box sx={{ width: 8, height: 8, bgcolor: COLORS[i % COLORS.length], borderRadius: '50%', mr: 0.5 }} />
                             {c.name}
@@ -405,7 +510,7 @@ export default function Home() {
               }} 
           />
 
-          {/* Global Drawers */}
+
           <EntryEditor 
               open={entryEditorOpen}
               onClose={() => {

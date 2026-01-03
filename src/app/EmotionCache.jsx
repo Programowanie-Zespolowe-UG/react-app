@@ -4,7 +4,7 @@ import createCache from '@emotion/cache';
 import { useServerInsertedHTML } from 'next/navigation';
 import { CacheProvider } from '@emotion/react';
 
-// This implementation is taken from the MUI + Next.js App Router example
+
 export function NextAppDirEmotionCacheProvider(props) {
   const { options, children } = props;
 

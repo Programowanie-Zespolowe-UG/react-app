@@ -30,7 +30,8 @@ export default function RegisterPage() {
 
   useEffect(() => {
       fetchCaptcha();
-  }, [fetchCaptcha]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -86,7 +87,7 @@ export default function RegisterPage() {
             onChange={(e) => setPassword(e.target.value)}
           />
 
-          {/* Captcha Section */}
+
           <Box sx={{ mt: 2, mb: 1, display: 'flex', alignItems: 'center', gap: 2 }}>
              <Box 
                 sx={{ 

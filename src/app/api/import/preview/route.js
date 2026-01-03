@@ -47,7 +47,7 @@ export async function POST(request) {
       if (Number.isNaN(amount) || amount === null) rowErrors.push('Invalid amount');
       if (!date) rowErrors.push('Invalid date');
 
-      // derive type from amount: negative -> expense, positive (or zero) -> income
+
       const type = (typeof amount === 'number' && !Number.isNaN(amount) && amount < 0) ? 'expense' : 'income';
 
       rows.push({ row: index + 1, date: date ? date.toISOString().slice(0,10) : dateRaw, category: categoryName, type, value: amountRaw, description });

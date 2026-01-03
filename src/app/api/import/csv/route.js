@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/data';
 import { parse } from 'csv-parse/sync';
 
-// POST body JSON: { csv: string, mapping: { date: 'DateCol', amount: 'AmountCol', description: 'DescCol', category: 'CategoryCol' }, userId: number, delimiter?: string }
+
 export async function POST(request) {
   try {
     const body = await request.json();
@@ -12,13 +12,13 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Missing csv, mapping or userId' }, { status: 400 });
     }
 
-    // Parse CSV into objects (expects header row)
+
     const records = parse(csv, { columns: true, skip_empty_lines: true, delimiter });
 
     let imported = 0;
     const errors = [];
 
-    // helper parse date once
+
     const parseDateSafe = (s) => {
       if (!s) return null;
       const d1 = new Date(s);
@@ -62,10 +62,10 @@ export async function POST(request) {
           continue;
         }
 
-        // Determine type from amount
+
         const inferredType = amount < 0 ? 'expense' : 'income';
 
-        // Resolve or create category
+
         let category = null;
         if (categoryName) {
           const allCats = await db.categories.getAll(userId);
@@ -83,13 +83,13 @@ export async function POST(request) {
           }
         }
 
-        // create entry; use data shape expected by db.entries.create (category_id)
+
         await db.entries.create({ amount, date: date.toISOString(), description, category_id: category.id }, userId);
         imported += 1;
       } catch (rowErr) {
         console.error(`Import row ${rowNum} error:`, rowErr && rowErr.stack ? rowErr.stack : rowErr);
         errors.push({ row: rowNum, reason: rowErr.message || String(rowErr) });
-        // continue processing remaining rows
+
       }
     }
 
