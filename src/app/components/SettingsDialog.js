@@ -24,10 +24,10 @@ export default function SettingsDialog({ open, onClose, user, onUpdateUser, onPa
     // Schedule state updates asynchronously to avoid cascading renders
     queueMicrotask(() => {
       if (user?.name !== undefined) {
-        setName(user.name || '');
-      }
-      setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
-      setError('');
+      setName(user.name || '');
+    }
+        setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
+        setError('');
     });
   }, [user, open]);
 
