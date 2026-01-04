@@ -8,7 +8,7 @@ export default function DailyQuote() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // API: Advice Slip (Free, No Key)
+
     fetch('https://api.adviceslip.com/advice')
       .then(res => res.json())
       .then(data => {

@@ -11,19 +11,19 @@ export const db = {
   categories: {
     getAll: (userId) => prisma.category.findMany({ where: { OR: [{ userId: null }, { userId }] } }),
     create: (data, userId) => prisma.category.create({ data: { ...data, userId } }),
-    update: (id, data, userId) => prisma.category.update({ where: { id: Number(id), userId }, data }),
-    delete: (id, userId) => prisma.category.delete({ where: { id: Number(id), userId } }),
+    update: (id, data, userId) => prisma.category.update({ where: { id, userId }, data }),
+    delete: (id, userId) => prisma.category.delete({ where: { id, userId } }),
   },
   entries: {
     getAll: (userId) => prisma.entry.findMany({ where: { userId }, include: { category: true } }),
-    getById: (id, userId) => prisma.entry.findUnique({ where: { id: Number(id), userId }, include: { category: true } }),
+    getById: (id, userId) => prisma.entry.findUnique({ where: { id, userId }, include: { category: true } }),
     create: (data, userId) => {
         return prisma.entry.create({
             data: {
                 amount: data.amount,
                 date: data.date,
                 description: data.description,
-                categoryId: Number(data.category_id),
+                categoryId: data.category_id,
                 userId,
             }
         });
@@ -32,10 +32,10 @@ export const db = {
         const { category_id, type, id: _, ...rest } = data;
         const updateData = { ...rest };
         if (category_id) {
-            updateData.categoryId = Number(category_id);
+            updateData.categoryId = category_id;
         }
-        return prisma.entry.update({ where: { id: Number(id), userId }, data: updateData });
+        return prisma.entry.update({ where: { id, userId }, data: updateData });
     },
-    delete: (id, userId) => prisma.entry.delete({ where: { id: Number(id), userId } }),
+    delete: (id, userId) => prisma.entry.delete({ where: { id, userId } }),
   },
 };

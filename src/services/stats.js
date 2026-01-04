@@ -77,3 +77,68 @@ export function calculateYearlyBreakdown(entries, year) {
     };
   });
 }
+export function calculateStatsForRange(entries, startDate, endDate) {
+  const filteredEntries = entries.filter(e => {
+    const d = new Date(e.date);
+    return d >= startDate && d <= endDate;
+  });
+
+  const totalIncome = filteredEntries
+    .filter(e => e.category && e.category.type === 'income')
+    .reduce((sum, e) => sum + e.amount, 0);
+
+  const totalExpense = filteredEntries
+    .filter(e => e.category && e.category.type === 'expense')
+    .reduce((sum, e) => sum + e.amount, 0);
+
+  const balance = totalIncome - totalExpense;
+
+  return {
+    startDate,
+    endDate,
+    totalIncome,
+    totalExpense,
+    balance,
+    entries: filteredEntries
+  };
+}
+
+export function calculateTrendForRange(entries, startDate, endDate) {
+    // Generate months between start and end
+    const months = [];
+    let d = new Date(startDate);
+    // Align to start of month
+    d.setDate(1); 
+
+    const end = new Date(endDate);
+    
+    while (d <= end) {
+        months.push(new Date(d));
+        d.setMonth(d.getMonth() + 1);
+    }
+
+    return months.map(monthDate => {
+        const monthIndex = monthDate.getMonth();
+        const year = monthDate.getFullYear();
+        const monthName = monthDate.toLocaleString('default', { month: 'short' });
+
+        const monthlyEntries = entries.filter(e => {
+            const entryDate = new Date(e.date);
+            return entryDate.getFullYear() === year && entryDate.getMonth() === monthIndex;
+        });
+
+        const income = monthlyEntries
+            .filter(e => e.category && e.category.type === 'income')
+            .reduce((sum, e) => sum + e.amount, 0);
+
+        const expense = monthlyEntries
+            .filter(e => e.category && e.category.type === 'expense')
+            .reduce((sum, e) => sum + e.amount, 0);
+        
+        return {
+            name: `${monthName} ${year}`, // e.g. "Dec 2025"
+            income,
+            expense
+        };
+    });
+}

@@ -34,17 +34,17 @@ export default function BottomNav({ value, onChange }) {
     const text = await file.text();
     setCsvText(text);
 
-    // Extract header row
+
     const firstLine = text.split(/\r?\n/).find((l) => l.trim() !== '');
     if (!firstLine) {
       setSnackbar({ open: true, message: 'Plik CSV jest pusty', severity: 'error' });
       return;
     }
-    // Try detect delimiter: tab, semicolon, or comma
+
     const delimiter = firstLine.includes('\t') ? '\t' : (firstLine.includes(';') && !firstLine.includes(',') ? ';' : ',');
     const cols = firstLine.split(delimiter).map((c) => c.replace(/^\uFEFF/, '').trim());
     setHeaders(cols);
-    // Validate required columns: date, category, value (type removed — derived from value)
+
     const required = ['date', 'category', 'value'];
     const lower = cols.map((c) => c.toLowerCase());
     const missing = required.filter((r) => !lower.includes(r));
@@ -54,7 +54,7 @@ export default function BottomNav({ value, onChange }) {
       return;
     }
 
-    // Build mapping from required column names
+
     const mapping = {
       date: cols[lower.indexOf('date')],
       amount: cols[lower.indexOf('value')],
@@ -62,7 +62,7 @@ export default function BottomNav({ value, onChange }) {
       category: cols[lower.indexOf('category')],
     };
 
-    // request preview from server
+
     try {
       const previewRes = await fetch('/api/import/preview', {
         method: 'POST',
@@ -76,7 +76,7 @@ export default function BottomNav({ value, onChange }) {
         setPreviewMapping(mapping);
         setPreviewDelimiter(delimiter);
         setPreviewOpen(true);
-        // clear file input so selecting same file again will fire change
+
         try { if (fileInputRef.current) fileInputRef.current.value = null; } catch (e) { }
       } else {
         setSnackbar({ open: true, message: previewData.error || 'Błąd podczas podglądu pliku', severity: 'error' });
@@ -157,7 +157,6 @@ export default function BottomNav({ value, onChange }) {
           <DialogActions>
           <Button onClick={() => { setPreviewOpen(false); setPreviewRows([]); setPreviewErrors([]); setPreviewMapping(null); setPreviewDelimiter(','); try { if (fileInputRef.current) fileInputRef.current.value = null; } catch(e){} }}>Anuluj</Button>
           <Button variant="contained" onClick={async () => {
-            // perform actual import
             try {
               if (!user || !user.id) {
                 setSnackbar({ open: true, message: 'Zaloguj się aby importować', severity: 'error' });
@@ -171,7 +170,7 @@ export default function BottomNav({ value, onChange }) {
               const data = await res.json();
               if (res.ok) {
                 setSnackbar({ open: true, message: `Zaimportowano ${data.imported} wpisów, nieudanych: ${data.failed}`, severity: 'success' });
-                // refresh server components / data so entries list updates immediately
+
                 try { router.refresh(); } catch (e) { /* ignore if unavailable */ }
               } else {
                 setSnackbar({ open: true, message: data.error || 'Błąd importu', severity: 'error' });

@@ -14,7 +14,7 @@ datasource db {
 }
 
 model User {
-  id            Int        @id @default(autoincrement())
+  id            String     @id @default(uuid())
   email         String     @unique
   passwordHash  String
   name          String?
@@ -25,10 +25,10 @@ model User {
 }
 
 model Category {
-  id            Int      @id @default(autoincrement())
+  id            String   @id @default(uuid())
   name          String
   type          String   // 'income' or 'expense'
-  userId        Int?     @map("user_id") // Null for global default categories
+  userId        String?  @map("user_id") // Null for global default categories
   createdAt     DateTime @default(now()) @map("created_at")
 
   user          User?    @relation(fields: [userId], references: [id])
@@ -39,9 +39,9 @@ model Category {
 }
 
 model Entry {
-  id          Int      @id @default(autoincrement())
-  userId      Int      @map("user_id")
-  categoryId  Int      @map("category_id")
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  categoryId  String   @map("category_id")
   amount      Float
   date        DateTime
   description String?

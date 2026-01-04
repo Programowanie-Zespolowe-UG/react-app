@@ -20,7 +20,7 @@ export default function EntryEditor({ open, onClose, entry, onSave, onDelete, ca
   useEffect(() => {
     if (!open) return;
 
-    // Schedule state updates asynchronously to avoid cascading renders
+
     queueMicrotask(() => {
       if (entry) {
         setFormData({
@@ -31,7 +31,7 @@ export default function EntryEditor({ open, onClose, entry, onSave, onDelete, ca
           description: entry.description || ''
         });
       } else {
-        // Reset for add mode
+
         setFormData({
           amount: '',
           type: 'expense',
@@ -57,7 +57,7 @@ export default function EntryEditor({ open, onClose, entry, onSave, onDelete, ca
     onSave({
         ...formData,
         amount: parseFloat(formData.amount),
-        category_id: parseInt(formData.category_id),
+        category_id: formData.category_id,
         id: entry ? entry.id : undefined 
     });
     onClose();
@@ -104,7 +104,7 @@ export default function EntryEditor({ open, onClose, entry, onSave, onDelete, ca
                 value={formData.amount}
                 onChange={(e) => {
                     const val = e.target.value;
-                    // Allow positive numbers with up to 2 decimal places
+
                     if (val === '' || /^\d+(\.\d{0,2})?$/.test(val)) {
                         setFormData({ ...formData, amount: val });
                     }
@@ -157,7 +157,7 @@ export default function EntryEditor({ open, onClose, entry, onSave, onDelete, ca
                   if (!selected) {
                     return <em style={{ disabled: true, color: '#b3b3b3' }}>Select Category</em>;
                   }
-                  const category = filteredCategories.find(c => c.id === parseInt(selected));
+                  const category = filteredCategories.find(c => c.id === selected);
                   return category ? category.name : '';
                 }}
                 sx={{

@@ -42,6 +42,16 @@ a {
   text-decoration: none;
 }
 
-svg:focus {
-    outline: none;
+/* Remove default focus outline for Recharts elements and everything else if requested */
+/* Using !important to override UA styles for SVGs */
+*:focus,
+svg:focus,
+path:focus,
+g:focus,
+.recharts-sector:focus,
+.recharts-rectangle:focus,
+.recharts-pie:focus,
+.recharts-wrapper:focus,
+.recharts-surface:focus {
+  outline: none !important;
 }

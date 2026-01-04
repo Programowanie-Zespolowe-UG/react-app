@@ -15,13 +15,13 @@ const ColorModeContext = createContext({ toggleColorMode: () => {} });
 export const useColorMode = () => useContext(ColorModeContext);
 
 export default function ThemeContextProvider({ children }) {
-  // Always start with 'light' to ensure SSR/CSR match, then update after hydration
+
   const [mode, setMode] = useState('light');
   const [mounted, setMounted] = useState(false);
 
-  // Load saved preference after component mounts (client-side only)
+
   useEffect(() => {
-    // Schedule state updates asynchronously to avoid cascading renders
+
     queueMicrotask(() => {
       setMounted(true);
       const savedMode = localStorage.getItem('themeMode');
@@ -37,7 +37,7 @@ export default function ThemeContextProvider({ children }) {
     });
   }, []);
 
-  // Update DOM attribute when mode changes
+
   useEffect(() => {
     if (mounted) {
       document.documentElement.setAttribute('data-theme', mode);
@@ -66,18 +66,18 @@ export default function ThemeContextProvider({ children }) {
           mode,
           ...(mode === 'light'
             ? {
-                // Modern Light Mode
-                primary: { main: '#6C5CE7' }, // Modern Purple
-                secondary: { main: '#00CEC9' }, // Teal
+
+                primary: { main: '#6C5CE7' },
+                secondary: { main: '#00CEC9' },
                 background: { default: '#F8F9FD', paper: '#FFFFFF' },
                 text: { primary: '#2D3436', secondary: '#636E72' },
               }
             : {
-                // Modern Dark Mode - Expert UI/UX
-                primary: { main: '#BB86FC' }, // Material Design 200 Purple (High contrast on dark)
-                secondary: { main: '#03DAC6' }, // Material Design 200 Teal
-                background: { default: '#121212', paper: '#1E1E1E' }, // Standard Material Dark Surface
-                text: { primary: 'rgba(255, 255, 255, 0.87)', secondary: 'rgba(255, 255, 255, 0.60)' }, // Standard high-emphasis & medium-emphasis text
+
+                primary: { main: '#BB86FC' },
+                secondary: { main: '#03DAC6' },
+                background: { default: '#121212', paper: '#1E1E1E' },
+                text: { primary: 'rgba(255, 255, 255, 0.87)', secondary: 'rgba(255, 255, 255, 0.60)' },
                 divider: 'rgba(255, 255, 255, 0.12)',
                 action: {
                     active: 'rgba(255, 255, 255, 0.56)',
