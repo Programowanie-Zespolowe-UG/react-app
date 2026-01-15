@@ -37,7 +37,7 @@ export default function BottomNav({ value, onChange }) {
 
     const firstLine = text.split(/\r?\n/).find((l) => l.trim() !== '');
     if (!firstLine) {
-      setSnackbar({ open: true, message: 'Plik CSV jest pusty', severity: 'error' });
+      setSnackbar({ open: true, message: 'CSV file is empty', severity: 'error' });
       return;
     }
 
@@ -49,7 +49,7 @@ export default function BottomNav({ value, onChange }) {
     const lower = cols.map((c) => c.toLowerCase());
     const missing = required.filter((r) => !lower.includes(r));
     if (missing.length > 0) {
-      setSnackbar({ open: true, message: `Brakujące kolumny: ${missing.join(', ')}`, severity: 'error' });
+      setSnackbar({ open: true, message: `Missing columns: ${missing.join(', ')}`, severity: 'error' });
       e.target.value = null;
       return;
     }
@@ -79,12 +79,12 @@ export default function BottomNav({ value, onChange }) {
 
         try { if (fileInputRef.current) fileInputRef.current.value = null; } catch (e) { }
       } else {
-        setSnackbar({ open: true, message: previewData.error || 'Błąd podczas podglądu pliku', severity: 'error' });
+        setSnackbar({ open: true, message: previewData.error || 'Error during file preview', severity: 'error' });
         e.target.value = null;
       }
     } catch (err) {
       console.error('Preview request failed', err);
-      setSnackbar({ open: true, message: 'Błąd sieci podczas podglądu', severity: 'error' });
+      setSnackbar({ open: true, message: 'Network error during preview', severity: 'error' });
       e.target.value = null;
     }
   };
@@ -117,17 +117,17 @@ export default function BottomNav({ value, onChange }) {
       <input ref={fileInputRef} type="file" accept=".csv,text/csv" style={{ display: 'none' }} onChange={handleFileChange} />
 
       <Dialog open={previewOpen} onClose={() => setPreviewOpen(false)} maxWidth="md" fullWidth>
-        <DialogTitle>Preview pliku (pierwsze 5 wierszy)</DialogTitle>
+        <DialogTitle>File preview (first 5 rows)</DialogTitle>
         <DialogContent>
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Wiersz</TableCell>
-                <TableCell>Data</TableCell>
-                <TableCell>Kategoria</TableCell>
-                <TableCell>Typ</TableCell>
-                <TableCell align="right">Kwota</TableCell>
-                <TableCell>Opis</TableCell>
+                <TableCell>Row</TableCell>
+                <TableCell>Date</TableCell>
+                <TableCell>Category</TableCell>
+                <TableCell>Type</TableCell>
+                <TableCell align="right">Amount</TableCell>
+                <TableCell>Description</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -145,21 +145,21 @@ export default function BottomNav({ value, onChange }) {
           </Table>
           {previewErrors.length > 0 && (
             <div style={{ marginTop: 12 }}>
-              <strong>Wykryte błędy:</strong>
+              <strong>Detected errors:</strong>
               <ul>
                 {previewErrors.map((err) => (
-                  <li key={err.row}>Wiersz {err.row}: {err.errors.join(', ')}</li>
+                  <li key={err.row}>Row {err.row}: {err.errors.join(', ')}</li>
                 ))}
               </ul>
             </div>
           )}
         </DialogContent>
           <DialogActions>
-          <Button onClick={() => { setPreviewOpen(false); setPreviewRows([]); setPreviewErrors([]); setPreviewMapping(null); setPreviewDelimiter(','); try { if (fileInputRef.current) fileInputRef.current.value = null; } catch(e){} }}>Anuluj</Button>
+          <Button onClick={() => { setPreviewOpen(false); setPreviewRows([]); setPreviewErrors([]); setPreviewMapping(null); setPreviewDelimiter(','); try { if (fileInputRef.current) fileInputRef.current.value = null; } catch(e){} }}>Cancel</Button>
           <Button variant="contained" onClick={async () => {
             try {
               if (!user || !user.id) {
-                setSnackbar({ open: true, message: 'Zaloguj się aby importować', severity: 'error' });
+                setSnackbar({ open: true, message: 'Please log in to import', severity: 'error' });
                 return;
               }
               const res = await fetch('/api/import/csv', {
@@ -169,15 +169,15 @@ export default function BottomNav({ value, onChange }) {
               });
               const data = await res.json();
               if (res.ok) {
-                setSnackbar({ open: true, message: `Zaimportowano ${data.imported} wpisów, nieudanych: ${data.failed}`, severity: 'success' });
+                setSnackbar({ open: true, message: `Imported ${data.imported} entries, failed: ${data.failed}`, severity: 'success' });
 
                 try { router.refresh(); } catch (e) { /* ignore if unavailable */ }
               } else {
-                setSnackbar({ open: true, message: data.error || 'Błąd importu', severity: 'error' });
+                setSnackbar({ open: true, message: data.error || 'Import error', severity: 'error' });
               }
             } catch (err) {
               console.error('Import failed', err);
-              setSnackbar({ open: true, message: 'Błąd sieci podczas importu', severity: 'error' });
+              setSnackbar({ open: true, message: 'Network error during import', severity: 'error' });
             } finally {
               setPreviewOpen(false);
               setPreviewRows([]);
@@ -187,7 +187,7 @@ export default function BottomNav({ value, onChange }) {
               setPreviewDelimiter(',');
               try { if (fileInputRef.current) fileInputRef.current.value = null; } catch(e){}
             }
-          }}>Importuj</Button>
+          }}>Import</Button>
         </DialogActions>
       </Dialog>
 

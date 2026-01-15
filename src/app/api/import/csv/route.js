@@ -65,13 +65,19 @@ export async function POST(request) {
 
         const inferredType = amount < 0 ? 'expense' : 'income';
 
-
+        // Resolve or create category. If existing category is found, use its stored type.
         let category = null;
+        let finalType = inferredType;
         if (categoryName) {
           const allCats = await db.categories.getAll(userId);
-          category = allCats.find((c) => c.name === categoryName && (c.userId === null || c.userId === userId));
-          if (!category) {
+          const nameNorm = String(categoryName).trim().toLowerCase();
+          category = allCats.find((c) => String(c.name).trim().toLowerCase() === nameNorm && (c.userId === null || c.userId === userId));
+          if (category) {
+            finalType = category.type || inferredType;
+          } else {
+            // create new category with inferred type
             category = await db.categories.create({ name: categoryName, type: inferredType }, userId);
+            finalType = inferredType;
           }
         }
 
@@ -79,7 +85,9 @@ export async function POST(request) {
           const allCats = await db.categories.getAll(userId);
           category = allCats.find((c) => c.name === 'Imported' && c.userId === userId);
           if (!category) {
-            category = await db.categories.create({ name: 'Imported', type: inferredType }, userId);
+            category = await db.categories.create({ name: 'Imported', type: finalType }, userId);
+          } else {
+            finalType = category.type || finalType;
           }
         }
 
