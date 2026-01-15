@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { parse } from 'csv-parse/sync';
+import prisma from '../../../../lib/prisma';
 
 const parseDateSafe = (s) => {
   if (!s) return null;
@@ -48,7 +49,18 @@ export async function POST(request) {
       if (!date) rowErrors.push('Invalid date');
 
 
-      const type = (typeof amount === 'number' && !Number.isNaN(amount) && amount < 0) ? 'expense' : 'income';
+      let type = null;
+      if (categoryName) {
+        try {
+          const cat = await prisma.category.findFirst({ where: { name: categoryName } });
+          if (cat && cat.type) type = cat.type;
+        } catch (e) {
+          console.error('Category lookup failed:', e && e.stack ? e.stack : e);
+        }
+      }
+      if (!type) {
+        type = (typeof amount === 'number' && !Number.isNaN(amount) && amount < 0) ? 'expense' : 'income';
+      }
 
       rows.push({ row: index + 1, date: date ? date.toISOString().slice(0,10) : dateRaw, category: categoryName, type, value: amountRaw, description });
       if (rowErrors.length) errors.push({ row: index + 1, errors: rowErrors });
