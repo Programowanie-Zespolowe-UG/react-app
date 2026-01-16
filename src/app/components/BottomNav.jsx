@@ -94,7 +94,18 @@ export default function BottomNav({ value, onChange }) {
   return (
     <>
       <Paper 
-        sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1000, borderRadius: 0 }} 
+        sx={{ 
+          position: 'fixed', 
+          bottom: 0, 
+          left: 0, 
+          right: 0, 
+          zIndex: 1000, 
+          borderRadius: 0,
+          pb: 'env(safe-area-inset-bottom)',
+          boxSizing: 'border-box',
+          overflowX: 'auto',
+          WebkitOverflowScrolling: 'touch'
+        }} 
         elevation={5}
       >
         <BottomNavigation
@@ -103,7 +114,16 @@ export default function BottomNav({ value, onChange }) {
           onChange={(event, newValue) => {
             onChange(newValue);
           }}
-          sx={{ height: 64 }}
+          sx={{
+            height: 64,
+            width: 'max-content',
+            minWidth: '100%',
+            flexWrap: 'nowrap',
+            '& .MuiBottomNavigationAction-root': {
+              minWidth: 72,
+              flexShrink: 0,
+            },
+          }}
         >
           <BottomNavigationAction label="Dashboard" icon={<DashboardIcon />} />
           <BottomNavigationAction label="Add" icon={<AddCircleIcon />} />

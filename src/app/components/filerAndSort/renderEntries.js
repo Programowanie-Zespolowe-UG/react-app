@@ -13,6 +13,7 @@ import {
   Select,
   FormControl,
   InputLabel,
+  Pagination,
   Chip,
   Collapse,
   Tooltip,
@@ -24,7 +25,7 @@ import Paper from "@mui/material/Paper";
 import InputBase from "@mui/material/InputBase";
 import SearchIcon from "@mui/icons-material/Search";
 import EntryCard from "../../components/EntryCard";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export const sortingType = {
     dateDesc: "date-desc",
@@ -44,6 +45,8 @@ export default function RenderEntries({ entries, openEntryEditor }) {
     const [filterBy, setFilterBy] = useState(filterType.all); // 'all', 'income', 'expense'
     const [sortBy, setSortBy] = useState(sortingType.dateDesc);
     const [searchQuery, setSearchQuery] = useState('');
+    const [page, setPage] = useState(1);
+    const [rowsPerPage] = useState(10);
 
     console.log(entries);
 
@@ -84,6 +87,13 @@ export default function RenderEntries({ entries, openEntryEditor }) {
          }
     });
 
+    const totalPages = Math.max(1, Math.ceil(filteredEntries.length / rowsPerPage));
+    const currentPage = Math.min(page, totalPages);
+    const pagedEntries = filteredEntries.slice(
+        (currentPage - 1) * rowsPerPage,
+        currentPage * rowsPerPage
+    );
+
 
     return (
         <Stack spacing={2}>
@@ -121,19 +131,28 @@ export default function RenderEntries({ entries, openEntryEditor }) {
                   <Chip
                     label="All"
                     color={filterBy === filterType.all ? "primary" : "default"}
-                    onClick={() => setFilterBy(filterType.all)}
+                    onClick={() => {
+                      setFilterBy(filterType.all);
+                      setPage(1);
+                    }}
                     variant={filterBy === filterType.all ? "filled" : "outlined"}
                   />
                   <Chip
                     label="Expenses"
                     color={filterBy === filterType.expense ? "error" : "default"}
-                    onClick={() => setFilterBy(filterType.expense)}
+                    onClick={() => {
+                      setFilterBy(filterType.expense);
+                      setPage(1);
+                    }}
                     variant={filterBy === filterType.expense ? "filled" : "outlined"}
                   />
                   <Chip
                     label="Income"
                     color={filterBy === filterType.income ? "success" : "default"}
-                    onClick={() => setFilterBy(filterType.income)}
+                    onClick={() => {
+                      setFilterBy(filterType.income);
+                      setPage(1);
+                    }}
                     variant={filterBy === filterType.income ? "filled" : "outlined"}
                   />
                 </Stack>
@@ -143,7 +162,10 @@ export default function RenderEntries({ entries, openEntryEditor }) {
                   <Select
                     value={sortBy}
                     label="Sort By"
-                    onChange={(e) => setSortBy(e.target.value)}
+                    onChange={(e) => {
+                      setSortBy(e.target.value);
+                      setPage(1);
+                    }}
                   >
                     <MenuItem value="date-desc">Newest First</MenuItem>
                     <MenuItem value="date-asc">Oldest First</MenuItem>
@@ -164,7 +186,10 @@ export default function RenderEntries({ entries, openEntryEditor }) {
                     placeholder="Search Transactions"
                     inputProps={{ "aria-label": "search transactions" }}
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setPage(1);
+                    }}
                   />
                   <IconButton
                     type="button"
@@ -179,7 +204,7 @@ export default function RenderEntries({ entries, openEntryEditor }) {
           </Collapse>
   
           <Box>
-            {filteredEntries.map((entry) => (
+            {pagedEntries.map((entry) => (
               <EntryCard
                 key={entry.id}
                 entry={entry}
@@ -196,6 +221,18 @@ export default function RenderEntries({ entries, openEntryEditor }) {
               </Box>
             )}
           </Box>
+
+          {filteredEntries.length > 0 && (
+            <Pagination
+              count={totalPages}
+              page={currentPage}
+              onChange={(_, value) => setPage(value)}
+              color="primary"
+              shape="rounded"
+              size="small"
+              sx={{ alignSelf: "center" }}
+            />
+          )}
         </Stack>
       );
 }

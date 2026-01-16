@@ -16,6 +16,8 @@ import {
   FormControl,
   InputLabel,
   Tooltip as MuiTooltip,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/AddRounded";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
@@ -78,6 +80,11 @@ export default function Home() {
   const [reportRange, setReportRange] = useState("last12m"); // 'last12m', 'last6m', 'last3m', 'last1m', '2025', etc.
   const [dashboardStats, setDashboardStats] = useState(null);
   const [reportStats, setReportStats] = useState(null);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
   const fetchDashboardData = useCallback(async () => {
     try {
@@ -147,9 +154,26 @@ export default function Home() {
       if (res.ok) {
         const updatedUser = await res.json();
         updateUser(updatedUser);
+        setSnackbar({
+          open: true,
+          message: "Profile updated successfully.",
+          severity: "success",
+        });
+      } else {
+        const { error } = await res.json();
+        setSnackbar({
+          open: true,
+          message: error || "Failed to update profile.",
+          severity: "error",
+        });
       }
     } catch (error) {
       console.error("Failed to update user", error);
+      setSnackbar({
+        open: true,
+        message: "Network error while updating profile.",
+        severity: "error",
+      });
     }
   };
 
@@ -163,6 +187,11 @@ export default function Home() {
       const { error } = await res.json();
       throw new Error(error);
     }
+    setSnackbar({
+      open: true,
+      message: "Password changed successfully.",
+      severity: "success",
+    });
   };
 
   const handleSaveEntry = async (entryData) => {
@@ -172,21 +201,63 @@ export default function Home() {
         ? `/api/entries/${entryData.id}`
         : "/api/entries";
 
-      await fetch(url, {
+      const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(entryData),
       });
+      if (!res.ok) {
+        const { error } = await res.json();
+        setSnackbar({
+          open: true,
+          message: error || "Failed to save transaction.",
+          severity: "error",
+        });
+        return;
+      }
       fetchData();
+      setSnackbar({
+        open: true,
+        message: entryData.id ? "Transaction updated." : "Transaction added.",
+        severity: "success",
+      });
     } catch (e) {
       console.error("Save failed", e);
+      setSnackbar({
+        open: true,
+        message: "Network error while saving transaction.",
+        severity: "error",
+      });
     }
   };
 
   const handleDeleteEntry = async (id) => {
     if (confirm("Delete this entry?")) {
-      await fetch(`/api/entries/${id}`, { method: "DELETE" });
-      fetchData();
+      try {
+        const res = await fetch(`/api/entries/${id}`, { method: "DELETE" });
+        if (!res.ok) {
+          const { error } = await res.json();
+          setSnackbar({
+            open: true,
+            message: error || "Failed to delete transaction.",
+            severity: "error",
+          });
+          return;
+        }
+        fetchData();
+        setSnackbar({
+          open: true,
+          message: "Transaction deleted.",
+          severity: "success",
+        });
+      } catch (e) {
+        console.error("Delete failed", e);
+        setSnackbar({
+          open: true,
+          message: "Network error while deleting transaction.",
+          severity: "error",
+        });
+      }
     }
   };
 
@@ -197,21 +268,63 @@ export default function Home() {
         ? `/api/categories/${catData.id}`
         : "/api/categories";
 
-      await fetch(url, {
+      const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(catData),
       });
+      if (!res.ok) {
+        const { error } = await res.json();
+        setSnackbar({
+          open: true,
+          message: error || "Failed to save category.",
+          severity: "error",
+        });
+        return;
+      }
       fetchData();
+      setSnackbar({
+        open: true,
+        message: catData.id ? "Category updated." : "Category added.",
+        severity: "success",
+      });
     } catch (e) {
       console.error("Save cat failed", e);
+      setSnackbar({
+        open: true,
+        message: "Network error while saving category.",
+        severity: "error",
+      });
     }
   };
 
   const handleDeleteCategory = async (id) => {
     if (confirm("Delete category?")) {
-      await fetch(`/api/categories/${id}`, { method: "DELETE" });
-      fetchData();
+      try {
+        const res = await fetch(`/api/categories/${id}`, { method: "DELETE" });
+        if (!res.ok) {
+          const { error } = await res.json();
+          setSnackbar({
+            open: true,
+            message: error || "Failed to delete category.",
+            severity: "error",
+          });
+          return;
+        }
+        fetchData();
+        setSnackbar({
+          open: true,
+          message: "Category deleted.",
+          severity: "success",
+        });
+      } catch (e) {
+        console.error("Delete failed", e);
+        setSnackbar({
+          open: true,
+          message: "Network error while deleting category.",
+          severity: "error",
+        });
+      }
     }
   };
 
@@ -252,16 +365,23 @@ export default function Home() {
           direction="row"
           justifyContent="space-between"
           alignItems="center"
+          flexWrap="wrap"
+          gap={1}
         >
-          <Box>
-            <Typography variant="h5" fontWeight="bold" color="text.primary">
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Typography
+              variant="h5"
+              fontWeight="bold"
+              color="text.primary"
+              sx={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+            >
               Hello, {user?.name || user?.email || "User"}! 👋
             </Typography>
             <Typography variant="body2" color="text.secondary">
               Last 12 Months Overview
             </Typography>
           </Box>
-          <Stack direction="row" spacing={1}>
+          <Stack direction="row" spacing={1} flexShrink={0}>
             <IconButton onClick={() => setSettingsOpen(true)} color="inherit">
               <SettingsIcon />
             </IconButton>
@@ -695,8 +815,8 @@ export default function Home() {
   return (
     <Box
       sx={{
-        minHeight: "100vh",
-        pb: 8, // Space for bottom nav
+        minHeight: "100dvh",
+        pb: "calc(64px + env(safe-area-inset-bottom))", // Space for bottom nav + safe area
       }}
     >
       <Container maxWidth="sm" sx={{ py: 3, px: 2 }}>
@@ -751,6 +871,20 @@ export default function Home() {
           onPasswordChange={handlePasswordChange}
         />
       </Container>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
+      >
+        <Alert
+          onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
