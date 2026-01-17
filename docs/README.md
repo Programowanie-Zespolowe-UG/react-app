@@ -160,14 +160,12 @@ npm run dev -- --no-turbo
 
 Poniżej znajdują się aktualne screeny aplikacji:
 
-```md
-![Dashboard](docs/screenshots/dashboard.png)
-![Transakcje](docs/screenshots/transactions.png)
-![Wpisy](docs/screenshots/entries.png)
-![Kategorie](docs/screenshots/categories.png)
-![Raporty](docs/screenshots/reports.png)
-![Import CSV](docs/screenshots/import.png)
-```
+![Dashboard](./screenshots/dashboard.png)
+![Transakcje](./screenshots/transactions.png)
+![Wpisy](./screenshots/entries.png)
+![Kategorie](./screenshots/categories.png)
+![Raporty](./screenshots/reports.png)
+![Import CSV](./screenshots/import.png)
 
 ---
 
