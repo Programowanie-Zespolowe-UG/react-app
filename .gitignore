@@ -60,3 +60,4 @@ logs/
 Thumbs.db
 ehthumbs.db
 
+test-results/.last-run.json

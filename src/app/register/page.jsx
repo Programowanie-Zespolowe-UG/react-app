@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { Box, TextField, Button, Typography, Container, Link, IconButton, useTheme } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { useColorMode } from '../context/ThemeContext';
@@ -45,6 +46,7 @@ export default function RegisterPage() {
       });
 
       if (res.ok) {
+        toast.success('Registration successful!');
         router.push('/login');
       } else {
         const data = await res.json();

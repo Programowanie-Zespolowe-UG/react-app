@@ -1,5 +1,6 @@
 import ThemeRegistry from './ThemeRegistry';
 import { AuthProvider } from '../context/AuthContext';
+import { Toaster } from 'sonner';
 
 export const metadata = {
   title: 'Budget Journal',
@@ -21,6 +22,7 @@ export default function RootLayout({ children }) {
           <AuthProvider>
             {children}
           </AuthProvider>
+          <Toaster position="top-center" richColors />
         </ThemeRegistry>
       </body>
     </html>

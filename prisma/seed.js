@@ -19,6 +19,7 @@ const defaultCategories = [
   { name: 'Shopping', type: 'expense' },
   { name: 'Health', type: 'expense' },
   { name: 'Other Expense', type: 'expense' },
+  { name: 'Gym', type: 'expense' },
 ];
 
 async function main() {
@@ -47,7 +48,7 @@ async function main() {
   console.log('Seeding custom categories for mock user...');
   const customCategory = await prisma.category.create({
     data: {
-      name: 'Gym',
+      name: 'My Custom',
       type: 'expense',
       userId: user.id,
     },
@@ -61,6 +62,7 @@ async function main() {
   const foodCategory = await prisma.category.findFirst({ where: { name: 'Food' }});
   const shoppingCategory = await prisma.category.findFirst({ where: { name: 'Shopping' }});
   const transportCategory = await prisma.category.findFirst({ where: { name: 'Transport' }});
+  const gymCategory = await prisma.category.findFirst({ where: { name: 'Gym' }});
 
   console.log('Seeding entries for mock user...');
   if (salaryCategory) {
@@ -128,7 +130,7 @@ async function main() {
       amount: 150,
       date: new Date(),
       description: 'Gym Membership',
-      categoryId: customCategory.id,
+      categoryId: gymCategory.id,
       userId: user.id,
     },
   });

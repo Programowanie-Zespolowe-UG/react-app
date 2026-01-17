@@ -16,9 +16,8 @@ import {
   FormControl,
   InputLabel,
   Tooltip as MuiTooltip,
-  Snackbar,
-  Alert,
 } from "@mui/material";
+import { toast } from 'sonner';
 import AddIcon from "@mui/icons-material/AddRounded";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
 import Brightness7Icon from "@mui/icons-material/Brightness7";
@@ -77,28 +76,22 @@ export default function Home() {
   const [editingEntry, setEditingEntry] = useState(null);
   const [editingCategory, setEditingCategory] = useState(null);
 
-  const [reportRange, setReportRange] = useState("last12m"); // 'last12m', 'last6m', 'last3m', 'last1m', '2025', etc.
+  const [reportRange, setReportRange] = useState("last12m");
   const [dashboardStats, setDashboardStats] = useState(null);
   const [reportStats, setReportStats] = useState(null);
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "success",
-  });
 
   const fetchDashboardData = useCallback(async () => {
     try {
       const res = await fetch(`/api/stats?range=last12m`, { cache: "no-store" });
       if (res.ok) setDashboardStats(await res.json());
     } catch (e) {
-      console.error(e);
+      if (process.env.NODE_ENV === 'development') console.error(e);
     }
   }, []);
 
   const fetchReportData = useCallback(async () => {
     try {
       let url = `/api/stats?range=${reportRange}`;
-      // specific year logic
       if (!isNaN(reportRange)) {
         url = `/api/stats?year=${reportRange}`;
       }
@@ -106,7 +99,7 @@ export default function Home() {
       const res = await fetch(url, { cache: "no-store" });
       if (res.ok) setReportStats(await res.json());
     } catch (e) {
-      console.error(e);
+      if (process.env.NODE_ENV === 'development') console.error(e);
     }
   }, [reportRange]);
 
@@ -130,7 +123,7 @@ export default function Home() {
       fetchDashboardData();
       fetchReportData();
     } catch (error) {
-      console.error("Failed to fetch data", error);
+      if (process.env.NODE_ENV === 'development') console.error("Failed to fetch data", error);
     }
   }, [logout, fetchDashboardData, fetchReportData]);
 
@@ -154,26 +147,14 @@ export default function Home() {
       if (res.ok) {
         const updatedUser = await res.json();
         updateUser(updatedUser);
-        setSnackbar({
-          open: true,
-          message: "Profile updated successfully.",
-          severity: "success",
-        });
+        toast.success("Profile updated successfully.");
       } else {
         const { error } = await res.json();
-        setSnackbar({
-          open: true,
-          message: error || "Failed to update profile.",
-          severity: "error",
-        });
+        toast.error(error || "Failed to update profile.");
       }
     } catch (error) {
       console.error("Failed to update user", error);
-      setSnackbar({
-        open: true,
-        message: "Network error while updating profile.",
-        severity: "error",
-      });
+      toast.error("Network error while updating profile.");
     }
   };
 
@@ -187,11 +168,7 @@ export default function Home() {
       const { error } = await res.json();
       throw new Error(error);
     }
-    setSnackbar({
-      open: true,
-      message: "Password changed successfully.",
-      severity: "success",
-    });
+    toast.success("Password changed successfully.");
   };
 
   const handleSaveEntry = async (entryData) => {
@@ -208,26 +185,14 @@ export default function Home() {
       });
       if (!res.ok) {
         const { error } = await res.json();
-        setSnackbar({
-          open: true,
-          message: error || "Failed to save transaction.",
-          severity: "error",
-        });
+        toast.error(error || "Failed to save transaction.");
         return;
       }
       fetchData();
-      setSnackbar({
-        open: true,
-        message: entryData.id ? "Transaction updated." : "Transaction added.",
-        severity: "success",
-      });
+      toast.success(entryData.id ? "Transaction updated." : "Transaction added.");
     } catch (e) {
       console.error("Save failed", e);
-      setSnackbar({
-        open: true,
-        message: "Network error while saving transaction.",
-        severity: "error",
-      });
+      toast.error("Network error while saving transaction.");
     }
   };
 
@@ -237,26 +202,14 @@ export default function Home() {
         const res = await fetch(`/api/entries/${id}`, { method: "DELETE" });
         if (!res.ok) {
           const { error } = await res.json();
-          setSnackbar({
-            open: true,
-            message: error || "Failed to delete transaction.",
-            severity: "error",
-          });
+          toast.error(error || "Failed to delete transaction.");
           return;
         }
         fetchData();
-        setSnackbar({
-          open: true,
-          message: "Transaction deleted.",
-          severity: "success",
-        });
+        toast.success("Transaction deleted.");
       } catch (e) {
         console.error("Delete failed", e);
-        setSnackbar({
-          open: true,
-          message: "Network error while deleting transaction.",
-          severity: "error",
-        });
+        toast.error("Network error while deleting transaction.");
       }
     }
   };
@@ -275,56 +228,14 @@ export default function Home() {
       });
       if (!res.ok) {
         const { error } = await res.json();
-        setSnackbar({
-          open: true,
-          message: error || "Failed to save category.",
-          severity: "error",
-        });
+        toast.error(error || "Failed to save category.");
         return;
       }
       fetchData();
-      setSnackbar({
-        open: true,
-        message: catData.id ? "Category updated." : "Category added.",
-        severity: "success",
-      });
+      toast.success(catData.id ? "Category updated." : "Category added.");
     } catch (e) {
       console.error("Save cat failed", e);
-      setSnackbar({
-        open: true,
-        message: "Network error while saving category.",
-        severity: "error",
-      });
-    }
-  };
-
-  const handleDeleteCategory = async (id) => {
-    if (confirm("Delete category?")) {
-      try {
-        const res = await fetch(`/api/categories/${id}`, { method: "DELETE" });
-        if (!res.ok) {
-          const { error } = await res.json();
-          setSnackbar({
-            open: true,
-            message: error || "Failed to delete category.",
-            severity: "error",
-          });
-          return;
-        }
-        fetchData();
-        setSnackbar({
-          open: true,
-          message: "Category deleted.",
-          severity: "success",
-        });
-      } catch (e) {
-        console.error("Delete failed", e);
-        setSnackbar({
-          open: true,
-          message: "Network error while deleting category.",
-          severity: "error",
-        });
-      }
+      toast.error("Network error while saving category.");
     }
   };
 
@@ -519,7 +430,6 @@ export default function Home() {
     const savingsRate =
       totalIncome > 0 ? (totalIncome - totalExpense) / totalIncome : 0;
     const savingsValue = Math.round(savingsRate * 100);
-    // Create data for gauge: [Savings, Remaining]
     const savingsData = [
       { name: "Savings", value: savingsValue },
       { name: "Remaining", value: 100 - savingsValue },
@@ -536,7 +446,7 @@ export default function Home() {
     const currentYear = new Date().getFullYear();
     const years = Array.from({ length: 4 }, (_, i) =>
       (currentYear - i).toString()
-    ); // [2026, 2025, 2024, 2023]
+    );
     const ranges = [
       { label: "1M", value: "last1m" },
       { label: "3M", value: "last3m" },
@@ -800,14 +710,14 @@ export default function Home() {
         title="Income"
         categories={categories.filter((c) => c.type === "income")}
         onEdit={openCategoryEditor}
-        onDelete={handleDeleteCategory}
+        onDeleteSuccess={fetchData}
       />
 
       <CategoryList
         title="Expenses"
         categories={categories.filter((c) => c.type === "expense")}
         onEdit={openCategoryEditor}
-        onDelete={handleDeleteCategory}
+        onDeleteSuccess={fetchData}
       />
     </Stack>
   );
@@ -816,7 +726,7 @@ export default function Home() {
     <Box
       sx={{
         minHeight: "100dvh",
-        pb: "calc(64px + env(safe-area-inset-bottom))", // Space for bottom nav + safe area
+        pb: "calc(64px + env(safe-area-inset-bottom))",
       }}
     >
       <Container maxWidth="sm" sx={{ py: 3, px: 2 }}>
@@ -871,20 +781,6 @@ export default function Home() {
           onPasswordChange={handlePasswordChange}
         />
       </Container>
-
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={4000}
-        onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
-      >
-        <Alert
-          onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
-          severity={snackbar.severity}
-          sx={{ width: "100%" }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 }

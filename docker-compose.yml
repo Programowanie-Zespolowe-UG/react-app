@@ -1,0 +1,44 @@
+services:
+  traefik:
+    image: traefik:v2.10
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    restart: always
+
+  db:
+    image: mysql:8.0
+    container_name: budget-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: budget_app
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: always
+
+  app:
+    build: .
+    container_name: budget-app
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: mysql://root:root@db:3306/budget_app
+      NEXTAUTH_SECRET: supersecret
+      NEXT_PUBLIC_API_URL: https://projekt.przysiezny.pl
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app.rule=Host(`projekt.przysiezny.pl`)"
+      - "traefik.http.routers.app.entrypoints=web,websecure"
+      - "traefik.http.routers.app.tls=true"
+    restart: always
+
+volumes:
+  db_data:

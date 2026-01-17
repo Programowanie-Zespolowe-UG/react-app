@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { Box, TextField, Button, Typography, Container, Link } from '@mui/material';
 
 export default function LoginPage() {
@@ -24,6 +25,7 @@ export default function LoginPage() {
 
     if (res.ok) {
       const user = await res.json();
+      toast.success('Logged in successfully! Redirecting...');
       login(user);
     } else {
       const { error } = await res.json();

@@ -10,9 +10,8 @@ export async function PUT(request, { params }) {
     const { id } = await params;
     const body = await request.json();
     
-    // Ensure date is a Date object if present
     if (body.date) {
-        body.date = new Date(body.date);
+        body.date = new Date(body.date + 'T12:00:00Z');
     }
   
     try {
