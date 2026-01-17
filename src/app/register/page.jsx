@@ -52,7 +52,7 @@ export default function RegisterPage() {
         const data = await res.json();
         setError(data.error || 'Registration failed');
         setCaptchaValue('');
-        fetchCaptcha(); // Refresh captcha on error
+        fetchCaptcha();
       }
     } catch (err) {
       setError('An error occurred');

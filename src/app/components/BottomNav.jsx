@@ -1,19 +1,46 @@
- 'use client';
-import { useRef, useState } from 'react';
+'use client';
+import { useRef, useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Paper, BottomNavigation, BottomNavigationAction, Snackbar, Alert, Dialog, DialogTitle, DialogContent, DialogActions, Button, Table, TableHead, TableRow, TableCell, TableBody } from '@mui/material';
+import { 
+  Paper, 
+  BottomNavigation, 
+  BottomNavigationAction, 
+  Snackbar, 
+  Alert, 
+  Dialog, 
+  DialogTitle, 
+  DialogContent, 
+  DialogActions, 
+  Button, 
+  Table, 
+  TableHead, 
+  TableRow, 
+  TableCell, 
+  TableBody,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText
+} from '@mui/material';
 import DashboardIcon from '@mui/icons-material/DashboardRounded';
 import AddCircleIcon from '@mui/icons-material/AddCircleRounded';
 import ListIcon from '@mui/icons-material/ListRounded';
 import CategoryIcon from '@mui/icons-material/CategoryRounded';
 import AssessmentIcon from '@mui/icons-material/AssessmentRounded';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import { useAuth } from '@/context/AuthContext';
+
+const ITEM_MIN_WIDTH = 72;
 
 export default function BottomNav({ value, onChange }) {
   const fileInputRef = useRef(null);
   const { user } = useAuth();
   const router = useRouter();
+  
+  const containerRef = useRef(null);
+  const [visibleCount, setVisibleCount] = useState(6);
+  const [moreAnchorEl, setMoreAnchorEl] = useState(null);
 
   const [headers, setHeaders] = useState([]);
   const [csvText, setCsvText] = useState('');
@@ -27,6 +54,56 @@ export default function BottomNav({ value, onChange }) {
   const handleFileClick = () => {
     fileInputRef.current?.click();
   };
+
+  const navItems = useMemo(() => [
+    { label: 'Dashboard', icon: <DashboardIcon />, value: 0 },
+    { label: 'Add', icon: <AddCircleIcon />, value: 1 },
+    { label: 'Entries', icon: <ListIcon />, value: 2 },
+    { label: 'Categories', icon: <CategoryIcon />, value: 3 },
+    { label: 'Reports', icon: <AssessmentIcon />, value: 4 },
+    { label: 'Import', icon: <UploadFileIcon />, value: 5, onClick: handleFileClick },
+  ], []);
+
+  useEffect(() => {
+    const calculateVisibleItems = () => {
+      if (!containerRef.current) return;
+      
+      const containerWidth = containerRef.current.offsetWidth;
+
+      const maxItems = Math.floor(containerWidth / ITEM_MIN_WIDTH);
+      
+      if (maxItems >= navItems.length) {
+        setVisibleCount(navItems.length);
+      } else {
+        const count = Math.max(1, maxItems - 1);
+        setVisibleCount(count);
+      }
+    };
+
+    calculateVisibleItems();
+
+    const observer = new ResizeObserver(calculateVisibleItems);
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [navItems.length]);
+
+  const handleMoreClick = (event) => {
+    setMoreAnchorEl(event.currentTarget);
+  };
+
+  const handleMoreClose = () => {
+    setMoreAnchorEl(null);
+  };
+
+  const visibleItems = navItems.slice(0, visibleCount);
+  const hiddenItems = navItems.slice(visibleCount);
+  const isOverflowing = hiddenItems.length > 0;
+  
+  const isHiddenActive = value >= visibleCount;
+  const navValue = isHiddenActive ? 'more' : value;
 
   const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
@@ -89,11 +166,10 @@ export default function BottomNav({ value, onChange }) {
     }
   };
 
-  
-
   return (
     <>
       <Paper 
+        ref={containerRef}
         sx={{ 
           position: 'fixed', 
           bottom: 0, 
@@ -103,39 +179,90 @@ export default function BottomNav({ value, onChange }) {
           borderRadius: 0,
           pb: 'env(safe-area-inset-bottom)',
           boxSizing: 'border-box',
-          overflowX: 'auto',
-          WebkitOverflowScrolling: 'touch'
         }} 
         elevation={5}
       >
         <BottomNavigation
           showLabels
-          value={value}
+          value={navValue}
           onChange={(event, newValue) => {
-            onChange(newValue);
+             if (newValue === 'more') {
+                 handleMoreClick(event);
+             } else {
+                 onChange(newValue);
+             }
           }}
           sx={{
             height: 64,
-            width: 'max-content',
-            minWidth: '100%',
-            flexWrap: 'nowrap',
+            width: '100%',
+            justifyContent: 'center',
             '& .MuiBottomNavigationAction-root': {
-              minWidth: 72,
-              flexShrink: 0,
+              minWidth: ITEM_MIN_WIDTH, 
+              paddingLeft: 0,
+              paddingRight: 0
             },
           }}
         >
-          <BottomNavigationAction label="Dashboard" icon={<DashboardIcon />} />
-          <BottomNavigationAction label="Add" icon={<AddCircleIcon />} />
-          <BottomNavigationAction label="Entries" icon={<ListIcon />} />
-          <BottomNavigationAction label="Categories" icon={<CategoryIcon />} />
-          <BottomNavigationAction label="Reports" icon={<AssessmentIcon />} />
-          <BottomNavigationAction label="Import" icon={<UploadFileIcon />} onClick={handleFileClick} />
+          {visibleItems.map((item) => (
+            <BottomNavigationAction 
+              key={item.value} 
+              label={item.label} 
+              icon={item.icon} 
+              value={item.value}
+              onClick={item.onClick}
+            />
+          ))}
+
+          {isOverflowing && (
+             <BottomNavigationAction 
+                label="Inne" 
+                value="more"
+                icon={<MoreHorizIcon />} 
+             />
+          )}
         </BottomNavigation>
       </Paper>
 
+      {/* Overflow Menu */}
+      <Menu
+        anchorEl={moreAnchorEl}
+        open={Boolean(moreAnchorEl)}
+        onClose={handleMoreClose}
+        anchorOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        slotProps={{
+            paper: {
+                sx: { mb: 1, minWidth: 150 }
+            }
+        }}
+      >
+        {hiddenItems.map((item) => (
+            <MenuItem 
+                key={item.value} 
+                selected={value === item.value}
+                onClick={(e) => {
+                    onChange(item.value);
+                    if (item.onClick) item.onClick(e);
+                    handleMoreClose();
+                }}
+            >
+                <ListItemIcon>
+                    {item.icon}
+                </ListItemIcon>
+                <ListItemText>{item.label}</ListItemText>
+            </MenuItem>
+        ))}
+      </Menu>
+
       <input ref={fileInputRef} type="file" accept=".csv,text/csv" style={{ display: 'none' }} onChange={handleFileChange} />
 
+      {/* Import Preview Dialog - Unchanged */}
       <Dialog open={previewOpen} onClose={() => setPreviewOpen(false)} maxWidth="md" fullWidth>
         <DialogTitle>File preview (first 5 rows)</DialogTitle>
         <DialogContent>

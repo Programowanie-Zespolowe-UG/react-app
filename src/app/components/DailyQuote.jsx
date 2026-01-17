@@ -17,7 +17,7 @@ export default function DailyQuote() {
       })
       .catch(err => {
         console.error('Failed to fetch quote', err);
-        setQuote('Make today count!'); // Fallback
+        setQuote('Make today count!');
         setLoading(false);
       });
   }, []);
