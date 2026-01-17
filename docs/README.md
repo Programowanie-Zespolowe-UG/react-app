@@ -51,7 +51,7 @@ Wymagany format:
 date,category,value
 ```
 
-Obsługiwane separatoty: `,` lub `;` lub tabulator (w zależności od pliku).
+Obsługiwane separatoty: `,` lub `;` lub tabulator (aplikacja wykrywa separator automatycznie).
 
 ### Uwierzytelnianie i ustawienia
 
@@ -141,7 +141,7 @@ http://localhost:3000
 Jeśli pojawi się błąd Turbopack dotyczący braku uprawnień do symlinków, uruchom:
 
 ```bash
-npm run dev -- --no-turbo
+next dev --webpack
 ```
 
 ---
@@ -160,15 +160,86 @@ npm run dev -- --no-turbo
 
 Poniżej znajdują się aktualne screeny aplikacji:
 
-<img src="./screenshots/dashboard.png" alt="Dashboard" width="420" />
-<img src="./screenshots/transactions.png" alt="Transakcje" width="420" />
-<img src="./screenshots/entries.png" alt="Wpisy" width="420" />
-<img src="./screenshots/categories.png" alt="Kategorie" width="420" />
-<img src="./screenshots/reports.png" alt="Raporty" width="420" />
-<img src="./screenshots/import.png" alt="Import CSV" width="420" />
+<img src="./screenshots/dashboard.png" alt="Dashboard" width="420" height="300" />
+<img src="./screenshots/transactions.png" alt="Transakcje" width="420" height="300" />
+<img src="./screenshots/entries.png" alt="Wpisy" width="420" height="300" />
+<img src="./screenshots/categories.png" alt="Kategorie" width="420" height="300" />
+<img src="./screenshots/reports.png" alt="Raporty" width="420" height="300" />
+<img src="./screenshots/import.png" alt="Import CSV" width="420" height="300" />
 
 ---
 
-## Uwagi końcowe
+## Architektura (skrót)
 
-Dokumentacja opisuje rzeczywisty stan projektu i technologie użyte w implementacji. Projekt ma charakter edukacyjny i demonstracyjny.
+UI (Next.js) → API Routes → Prisma ORM → MySQL
+
+---
+
+## Endpointy API (najważniejsze)
+
+### Auth
+
+- `POST /api/auth/register` – rejestracja
+- `POST /api/auth/login` – logowanie
+- `POST /api/auth/logout` – wylogowanie
+- `GET /api/auth/me` – dane zalogowanego użytkownika
+- `PUT /api/auth/change-password` – zmiana hasła
+- `GET /api/auth/captcha` – CAPTCHA do rejestracji
+
+### Dane
+
+- `GET /api/entries` – lista wpisów
+- `POST /api/entries` – dodanie wpisu
+- `PUT /api/entries/:id` – edycja wpisu
+- `DELETE /api/entries/:id` – usunięcie wpisu
+- `GET /api/categories` – lista kategorii
+- `POST /api/categories` – dodanie kategorii
+- `PUT /api/categories/:id` – edycja kategorii
+- `DELETE /api/categories/:id` – usunięcie kategorii
+- `GET /api/stats` – statystyki do wykresów
+- `POST /api/import/preview` – podgląd CSV
+- `POST /api/import/csv` – import CSV
+
+---
+
+## Model danych (skrót)
+
+- **User**: `id`, `email`, `passwordHash`, `name`, `createdAt`
+- **Category**: `id`, `name`, `type`, `userId`, `createdAt`
+- **Entry**: `id`, `userId`, `categoryId`, `amount`, `date`, `description`, `createdAt`
+
+Relacje:
+
+- User → Categories (1:N)
+- User → Entries (1:N)
+- Category → Entries (1:N)
+
+---
+
+## Przepływy użytkownika (przykłady)
+
+- Rejestracja → CAPTCHA → logowanie → dashboard
+- Dodanie wpisu → aktualizacja listy → aktualizacja statystyk
+- Zmiana hasła → komunikat sukcesu/błędu
+
+---
+
+## Uruchomienie produkcyjne
+
+```bash
+npm run build
+npm run start
+```
+
+Wymagane zmienne środowiskowe: `DATABASE_URL`, `JWT_SECRET`, `CAPTCHA_SECRET`.
+
+---
+
+## Testy (manualna checklista)
+
+- rejestracja i logowanie
+- dodanie/edycja/usunięcie wpisu
+- filtrowanie i sortowanie transakcji
+- import CSV (poprawny i błędny plik)
+- zmiana hasła
+- raporty i wykresy
