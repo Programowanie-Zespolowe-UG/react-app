@@ -1,73 +1,245 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Personal Finance Tracker
 
-## Getting Started
+## Opis projektu
 
-This section has been moved to **Project Setup**.
+Personal Finance Tracker to aplikacja webowa do zarządzania budżetem domowym. 
+Umożliwia rejestrację i logowanie użytkowników, dodawanie przychodów i wydatków,
+kategoryzację transakcji oraz przegląd statystyk w postaci wykresów. 
+Projekt jest nastawiony na prostotę i czytelny interfejs,
+bez integracji bankowych i automatycznej synchronizacji.
 
-## Project Setup
+---
 
-Follow these steps to get the project running locally:
+## Najważniejsze funkcje
 
-1.  **Install Dependencies**
-
-    ```bash
-    npm install
-    ```
-
-2.  **Set up Environment Variables**
-
-    Create a `.env` file in the root of the project and add the following line. This connects to a local MySQL database named `database_name` with username `root` and password `root`. Make sure you have MySQL server running.
-
-    ```
-    DATABASE_URL="mysql://root:root@localhost:3306/database_name"
-    ```
-
-3.  **Apply the Database Schema**
-
-    This command will sync your database schema with your Prisma schema.
-
-    ```bash
-    npx prisma db push
-    ```
-    *Note: We use `db push` here to avoid potential issues with creating a shadow database in some local MySQL environments.*
+### Dashboard
 
 
-4.  **Seed the Database**
+- podsumowanie przychodów, wydatków i salda,
+- wykres trendów z ostatnich 12 miesięcy,
+- dzienna sentencja (Daily Wisdom).
 
-    This will populate the database with some initial data, including a test user and some sample entries.
+### Transakcje
 
-    ```bash
-    npx prisma db seed
-    ```
+- dodawanie, edycja i usuwanie wpisów,
+- filtrowanie po typie (przychód / wydatek),
+- sortowanie po dacie i kwocie,
+- wyszukiwanie po opisie i kategorii,
+- paginacja listy transakcji.
 
-    The test user credentials are:
-    - **Email:** `test@test.com`
-    - **Password:** `password`
+### Kategorie
 
-5.  **Run the Development Server**
+- domyślne kategorie globalne,
+- możliwość tworzenia własnych kategorii użytkownika,
+- rozróżnienie na przychody i wydatki.
 
-    ```bash
-    npm run dev
-    ```
+### Raporty
 
-    Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- analiza w wybranym zakresie czasu,
+- wykres kołowy struktury wydatków,
+- wskaźnik oszczędności (Savings Rate).
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+### Import CSV
 
+- import transakcji z pliku CSV,
+- podgląd pierwszych wierszy przed importem,
+- walidacja wymaganych kolumn.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Wymagany format:
 
-## Learn More
+```
+date,category,value
+```
 
-To learn more about Next.js, take a look at the following resources:
+Obsługiwane separatoty: `,` lub `;` lub tabulator (aplikacja wykrywa separator automatycznie).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Uwierzytelnianie i ustawienia
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- rejestracja i logowanie,
+- zmiana hasła,
+- edycja imienia w profilu,
+- tryb jasny / ciemny.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Technologie
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Frontend
+
+- **Next.js 16** (React, App Router)
+- **JavaScript (JSX)**
+- **Material UI (MUI)**
+- **Recharts**
+
+### Backend
+
+- **Next.js API Routes**
+- **JWT + cookie** (sesja użytkownika)
+
+### Baza danych
+
+- **MySQL**
+- **Prisma ORM**
+
+---
+
+## Uruchomienie lokalne
+
+### Wymagania
+
+- Node.js >= 18
+- npm
+- MySQL >= 8.0
+
+### Instalacja
+
+1. Zainstaluj zależności:
+
+```bash
+npm install
+```
+
+2. Utwórz plik `.env` w katalogu `react-app`:
+
+```env
+DATABASE_URL="mysql://root:root@localhost:3306/database_name"
+JWT_SECRET="your-secret-key"
+CAPTCHA_SECRET="captcha-secret-key"
+```
+
+3. Wygeneruj klienta Prisma i zastosuj migracje:
+
+```bash
+npx prisma migrate dev
+```
+
+4. Wypełnij bazę danymi testowymi:
+
+```bash
+npm run seed
+```
+
+Testowe konto:
+
+- email: `test@test.com`
+- hasło: `password`
+
+5. Uruchom aplikację:
+
+```bash
+npm run dev
+```
+
+Aplikacja będzie dostępna pod adresem:
+
+```
+http://localhost:3000
+```
+
+### Uwagi dla Windows
+
+Jeśli pojawi się błąd Turbopack dotyczący braku uprawnień do symlinków, uruchom:
+
+```bash
+next dev --webpack
+```
+
+---
+
+## Struktura projektu
+
+- `react-app/src/app` – UI i routy (App Router)
+- `react-app/src/app/api` – endpointy API
+- `react-app/src/context` – kontekst autoryzacji
+- `react-app/src/lib` – helpery (Prisma, auth)
+- `react-app/prisma` – schemat i migracje
+
+---
+
+## Zrzuty ekranu
+
+Poniżej znajdują się aktualne screeny aplikacji:
+
+<img src="./screenshots/dashboard.png" alt="Dashboard" width="420" height="300" />
+<img src="./screenshots/transactions.png" alt="Transakcje" width="420" height="300" />
+<img src="./screenshots/entries.png" alt="Wpisy" width="420" height="300" />
+<img src="./screenshots/categories.png" alt="Kategorie" width="420" height="300" />
+<img src="./screenshots/reports.png" alt="Raporty" width="420" height="300" />
+<img src="./screenshots/import.png" alt="Import CSV" width="420" height="300" />
+
+---
+
+## Architektura (skrót)
+
+UI (Next.js) → API Routes → Prisma ORM → MySQL
+
+---
+
+## Endpointy API (najważniejsze)
+
+### Auth
+
+- `POST /api/auth/register` – rejestracja
+- `POST /api/auth/login` – logowanie
+- `POST /api/auth/logout` – wylogowanie
+- `GET /api/auth/me` – dane zalogowanego użytkownika
+- `PUT /api/auth/change-password` – zmiana hasła
+- `GET /api/auth/captcha` – CAPTCHA do rejestracji
+
+### Dane
+
+- `GET /api/entries` – lista wpisów
+- `POST /api/entries` – dodanie wpisu
+- `PUT /api/entries/:id` – edycja wpisu
+- `DELETE /api/entries/:id` – usunięcie wpisu
+- `GET /api/categories` – lista kategorii
+- `POST /api/categories` – dodanie kategorii
+- `PUT /api/categories/:id` – edycja kategorii
+- `DELETE /api/categories/:id` – usunięcie kategorii
+- `GET /api/stats` – statystyki do wykresów
+- `POST /api/import/preview` – podgląd CSV
+- `POST /api/import/csv` – import CSV
+
+---
+
+## Model danych (skrót)
+
+- **User**: `id`, `email`, `passwordHash`, `name`, `createdAt`
+- **Category**: `id`, `name`, `type`, `userId`, `createdAt`
+- **Entry**: `id`, `userId`, `categoryId`, `amount`, `date`, `description`, `createdAt`
+
+Relacje:
+
+- User → Categories (1:N)
+- User → Entries (1:N)
+- Category → Entries (1:N)
+
+---
+
+## Przepływy użytkownika (przykłady)
+
+- Rejestracja → CAPTCHA → logowanie → dashboard
+- Dodanie wpisu → aktualizacja listy → aktualizacja statystyk
+- Zmiana hasła → komunikat sukcesu/błędu
+
+---
+
+## Uruchomienie produkcyjne
+
+```bash
+npm run build
+npm run start
+```
+
+Wymagane zmienne środowiskowe: `DATABASE_URL`, `JWT_SECRET`, `CAPTCHA_SECRET`.
+
+---
+
+## Testy (manualna checklista)
+
+- rejestracja i logowanie
+- dodanie/edycja/usunięcie wpisu
+- filtrowanie i sortowanie transakcji
+- import CSV (poprawny i błędny plik)
+- zmiana hasła
+- raporty i wykresy
